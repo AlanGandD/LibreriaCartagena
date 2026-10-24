@@ -1,0 +1,188 @@
+### Cartagena: peticiones de backend (REST Client VS Code)
+### Se envían desde "Send Request". Usa JWT de tu Login real.
+@base = http://localhost:8081
+@admin = REEMPLAZAR_TOKEN_ADMIN
+@cliente = REEMPLAZAR_TOKEN_CLIENTE
+@libro = LIB-CSHARP-001
+@domicilio = 1
+@venta = 1
+@paquete = 1
+@envio = 1
+
+### Gateway, salud C# y catálogo público
+GET {{base}}/health
+
+###
+GET {{base}}/api/core/health
+
+###
+GET {{base}}/api/libros
+
+###
+GET {{base}}/api/libros?q=arquitectura
+
+### Login del compañero: copiar token del campo datos.token
+POST {{base}}/api/v1/auth/login
+Content-Type: application/json
+
+{"nombreUsuario":"admin_demo","contrasena":"CAMBIAR"}
+
+### Registro de CLIENTE del compañero
+POST {{base}}/api/v1/auth/registro
+Content-Type: application/json
+
+{"nombreUsuario":"cliente_csharp","contrasena":"CLAVE_SEGURA","email":"cliente_csharp@example.com","nombreCompleto":"Cliente CSharp","telefono":"6681234567"}
+
+### Crear libro ADMIN
+POST {{base}}/api/libros
+Authorization: Bearer {{admin}}
+Content-Type: application/json
+
+{"id_libro":"{{libro}}","titulo":"Programación con C#","autor":"Ejemplo académico","precio":249.00,"stock":12,"stock_minimo":3,"stock_maximo":40,"descuento_porcentaje":0}
+
+### Consultar libro
+GET {{base}}/api/libros/{{libro}}
+
+### Modificar precio ADMIN
+PATCH {{base}}/api/libros/{{libro}}
+Authorization: Bearer {{admin}}
+Content-Type: application/json
+
+{"precio":259.00,"editorial":"Editorial Cartagena"}
+
+### Crear domicilio CLIENTE
+POST {{base}}/api/domicilios
+Authorization: Bearer {{cliente}}
+Content-Type: application/json
+
+{"calle":"Principal","numero":"100","colonia":"Centro","ciudad":"Los Mochis","estado":"Sinaloa","codigo_postal":"81200","telefono":"6681234567"}
+
+### Consultar domicilios
+GET {{base}}/api/domicilios
+Authorization: Bearer {{cliente}}
+
+### Poner 2 libros en carrito
+PUT {{base}}/api/carrito/{{libro}}
+Authorization: Bearer {{cliente}}
+Content-Type: application/json
+
+{"cantidad":2}
+
+### Consultar carrito
+GET {{base}}/api/carrito
+Authorization: Bearer {{cliente}}
+
+### Checkout simulación — Idempotency-Key fija para probar repetición
+POST {{base}}/api/checkout
+Authorization: Bearer {{cliente}}
+Idempotency-Key: compra-csharp-demo-001
+Content-Type: application/json
+
+{"id_domicilio":{{domicilio}},"tipo_pago":"Tarjeta","sandbox_resultado":"aprobado"}
+
+### Repetir exactamente el mismo checkout; debe devolver repetido=true
+POST {{base}}/api/checkout
+Authorization: Bearer {{cliente}}
+Idempotency-Key: compra-csharp-demo-001
+Content-Type: application/json
+
+{"id_domicilio":{{domicilio}},"tipo_pago":"Tarjeta","sandbox_resultado":"aprobado"}
+
+### Mis pedidos son la tabla venta, sin duplicar registros
+GET {{base}}/api/pedidos
+Authorization: Bearer {{cliente}}
+
+### Detalle pedido
+GET {{base}}/api/pedidos/{{venta}}
+Authorization: Bearer {{cliente}}
+
+### Mis ventas
+GET {{base}}/api/ventas
+Authorization: Bearer {{cliente}}
+
+### Detalle venta
+GET {{base}}/api/ventas/{{venta}}
+Authorization: Bearer {{cliente}}
+
+### Historial microservicio Python independiente
+GET {{base}}/api/historial-compras
+Authorization: Bearer {{cliente}}
+
+### Ticket generado por C#
+GET {{base}}/api/ventas/{{venta}}/ticket.pdf
+Authorization: Bearer {{cliente}}
+
+### Resumen ADMIN
+GET {{base}}/api/admin/resumen
+Authorization: Bearer {{admin}}
+
+### Pedidos ADMIN
+GET {{base}}/api/admin/pedidos
+Authorization: Bearer {{admin}}
+
+### Empaquetar venta confirmada ADMIN
+POST {{base}}/api/paquetes
+Authorization: Bearer {{admin}}
+Content-Type: application/json
+
+{"id_venta":{{venta}},"peso_kg":1.20,"largo_cm":30,"ancho_cm":20,"alto_cm":10}
+
+### Cambiar paquete a Listo
+PATCH {{base}}/api/paquetes/{{paquete}}
+Authorization: Bearer {{admin}}
+Content-Type: application/json
+
+{"estado":"Listo"}
+
+### Entregar a paquetería
+PATCH {{base}}/api/paquetes/{{paquete}}
+Authorization: Bearer {{admin}}
+Content-Type: application/json
+
+{"estado":"EntregadoAPaqueteria","numero_guia":"GUIA-12345"}
+
+### Listar envíos
+GET {{base}}/api/envios
+Authorization: Bearer {{admin}}
+
+### Confirmar entrega (solo después de guía y envío)
+PATCH {{base}}/api/envios/{{envio}}
+Authorization: Bearer {{admin}}
+Content-Type: application/json
+
+{"estado":"Entregado"}
+
+### Garantía cliente (dentro de los 7 días siguientes a la entrega)
+POST {{base}}/api/garantias
+Authorization: Bearer {{cliente}}
+Content-Type: application/json
+
+{"id_venta":{{venta}},"id_libro":"{{libro}}","motivo":"Ejemplo de devolución por garantía"}
+
+### Listar garantías
+GET {{base}}/api/garantias
+Authorization: Bearer {{cliente}}
+
+### Inventario: reporte PDF ADMIN
+GET {{base}}/api/inventario/reporte.pdf
+Authorization: Bearer {{admin}}
+
+### Compras a proveedores ADMIN
+GET {{base}}/api/compras-proveedor
+Authorization: Bearer {{admin}}
+
+### Reporte de compras ADMIN
+GET {{base}}/api/compras-proveedor/reporte?mes=2026-10
+Authorization: Bearer {{admin}}
+
+### Recuperación de cuenta — token llega por SMTP
+POST {{base}}/api/cuenta/recuperacion/solicitar
+Content-Type: application/json
+
+{"correo":"cliente_csharp@example.com"}
+
+### Negativo: sin JWT -> 401
+GET {{base}}/api/carrito
+
+### OpenAPI C#
+GET {{base}}/openapi/v1.json

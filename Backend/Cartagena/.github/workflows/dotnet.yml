@@ -1,0 +1,15 @@
+name: Validar backend CSharp
+on:
+  push:
+  pull_request:
+jobs:
+  dotnet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet restore Cartagena.slnx
+      - run: dotnet build Cartagena.slnx --configuration Release --no-restore
+      - run: dotnet test Cartagena.slnx --configuration Release --no-build

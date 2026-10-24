@@ -1,0 +1,14 @@
+{
+  "original_reported_errors": 207,
+  "root_cause": "C# raw string delimiters within 5 multiline SQL CREATE TABLE statements",
+  "migration_multiline_strings_fixed": 5,
+  "api_warnings_addressed": 4,
+  "files_updated": [
+    "backend/Cartagena.Migrator/Program.cs",
+    "backend/Cartagena.Api/Controllers/CuentasController.cs",
+    "backend/Cartagena.Api/Controllers/DigitalController.cs",
+    "backend/Cartagena.Api/Controllers/LibrosController.cs"
+  ],
+  "compiled": false,
+  "reason_not_compiled": "dotnet SDK not installed in artifact runtime"
+}

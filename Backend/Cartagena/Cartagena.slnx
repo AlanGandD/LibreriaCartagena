@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="backend/Cartagena.Api/Cartagena.Api.csproj" />
+  <Project Path="backend/Cartagena.Migrator/Cartagena.Migrator.csproj" />
+  <Project Path="backend/Cartagena.Tests/Cartagena.Tests.csproj" />
+</Solution>

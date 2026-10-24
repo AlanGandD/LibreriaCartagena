@@ -1,0 +1,100 @@
+name: cartagena-csharp
+services:
+  gateway:
+    image: nginx:1.27-alpine
+    ports:
+      - '${GATEWAY_PORT:-8081}:80'
+    volumes:
+      - ./gateway/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - login
+      - libreria-core
+      - resenas
+      - proveedores
+      - historial-compras
+    networks: [default]
+    restart: unless-stopped
+
+  # Backend principal, reimplementado en ASP.NET Core 10.
+  # Conservamos el nombre de servicio para no romper las rutas internas de Nginx.
+  libreria-core:
+    build: ./backend/Cartagena.Api
+    env_file: .env
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: Development
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-tienda_online}
+      JWT_ISSUER: ${JWT_ISSUER:-microservicio-login}
+      LIBROS_PDF_DIR: /data/pdfs
+    ports:
+      - '127.0.0.1:${DOTNET_PORT:-8083}:8080'
+    volumes:
+      - libros_pdf:/data/pdfs
+    networks: [default, libreria-network]
+    restart: unless-stopped
+
+  login:
+    build: ./servicios/microservicio-login
+    env_file: .env
+    environment:
+      NODE_ENV: development
+      PORT: '3000'
+      API_PREFIX: /api/v1
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-tienda_online}
+      HTTPS_ENABLED: 'false'
+    networks: [default, libreria-network]
+    restart: unless-stopped
+
+  proveedores:
+    build: ./servicios/proveedores
+    env_file: .env
+    environment:
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-tienda_online}
+    networks: [default, libreria-network]
+    restart: unless-stopped
+
+  resenas:
+    build: ./servicios/comentarios-resenas-service
+    env_file: .env
+    environment:
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-tienda_online}
+    networks: [default, libreria-network]
+    restart: unless-stopped
+
+  historial-compras:
+    build: ./servicios/historial-compras
+    env_file: .env
+    environment:
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-tienda_online}
+      JWT_ISSUER: ${JWT_ISSUER:-microservicio-login}
+    networks: [default, libreria-network]
+    restart: unless-stopped
+
+  migrador:
+    profiles: [tools]
+    build: ./backend/Cartagena.Migrator
+    env_file: .env
+    environment:
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-tienda_online}
+    networks: [default, libreria-network]
+    restart: 'no'
+
+networks:
+  default:
+  libreria-network:
+    external: true
+
+volumes:
+  libros_pdf:

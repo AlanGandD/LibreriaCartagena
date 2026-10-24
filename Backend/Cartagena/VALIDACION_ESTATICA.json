@@ -1,0 +1,17 @@
+{
+  "original_routes": 44,
+  "csharp_routes": 44,
+  "compose_services": [
+    "gateway",
+    "libreria-core",
+    "login",
+    "proveedores",
+    "resenas",
+    "historial-compras",
+    "migrador"
+  ],
+  "dotnet_compiled": false,
+  "docker_runtime_tested": false,
+  "structural_checks_passed": true,
+  "files": 89
+}
